@@ -16,7 +16,7 @@ public class CocheSur extends Thread{
 	
 		try {
 			Thread.sleep(retardoInicial);
-			unGestor.entrarSur(idCoche);
+			unGestor.entrarSur(this);
 			Thread.sleep(2000);
 			unGestor.salirPuente(idCoche);
 		} catch (InterruptedException e) {

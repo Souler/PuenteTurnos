@@ -16,7 +16,7 @@ public class CocheNorte extends Thread{
 	
 		try {
 			Thread.sleep(retardoInicial);
-			unGestor.entrarNorte(idCoche);
+			unGestor.entrarNorte(this);
 			Thread.sleep(2000);
 			unGestor.salirPuente(idCoche);
 		} catch (InterruptedException e) {

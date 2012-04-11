@@ -1,5 +1,6 @@
 package es.upm.dit.adsw.puenteturnos;
 
+import java.util.ArrayList;
 
 /**
  * @author Alejandro Alonso
@@ -14,15 +15,15 @@ public class GestorPuenteTurnos {
 	 */
 	private boolean hayCocheEnPuente = false;
 
-	/** Indica en n'umero de coches que est'an esperando
+	/** Almacena los coches que est'an esperando
 	 * para entrar en el puente por el norte
 	 */
-	private int nCochesNorte = 0;
+	private ArrayList<CocheNorte> lCochesNorte = new ArrayList<CocheNorte>();
 
-	/** Indica en n'umero de coches que est'an esperando
+	/** Almacena los coches que est'an esperando
 	 * para entrar en el puente por el sur
 	 */
-	private int nCochesSur   = 0;
+	private ArrayList<CocheSur> lCochesSur = new ArrayList<CocheSur>();
 
 	/** Indica si el turno es de los coches que vienen
 	 * por el norte o por el sur. 
@@ -35,14 +36,15 @@ public class GestorPuenteTurnos {
 	 * @throws InterruptedException Esta excepci'on se eleva
 	 * cuando se interrumpe a la hebra mientra est'a esperando
 	 */
-	public synchronized void entrarNorte() 
+	public synchronized void entrarNorte(CocheNorte coche)
 			throws InterruptedException {
 
-		nCochesNorte ++;		
-		while (hayCocheEnPuente ||
-				(!turnoNorte && nCochesSur > 0)) wait();
+		lCochesNorte.add(coche);
+		while ((hayCocheEnPuente || (!turnoNorte && !lCochesSur.isEmpty()))
+				&& coche != lCochesNorte.get(0)) wait();
+
 		hayCocheEnPuente = true;
-		nCochesNorte --;
+		lCochesNorte.remove(0);
 		turnoNorte = false;
 	}
 
@@ -53,20 +55,22 @@ public class GestorPuenteTurnos {
 	 * @throws InterruptedException Esta excepci'on se eleva
 	 * cuando se interrumpe a la hebra mientra est'a esperando
 	 */
-	public synchronized void  entrarSur() 
+	public synchronized void  entrarSur(CocheSur coche)
 			throws InterruptedException {
-		nCochesSur ++;
-		while (hayCocheEnPuente ||
-				(turnoNorte && nCochesNorte > 0)) wait();
+
+		lCochesSur.add(coche);
+		while ((hayCocheEnPuente || (turnoNorte && !lCochesNorte.isEmpty()))
+				&& coche != lCochesSur.get(0)) wait();
+
 		hayCocheEnPuente = true;
-		nCochesSur --;
+		lCochesSur.remove(0);
 		turnoNorte = true;
 	}
 
 	/** M'etodo que invoca el coche que est'a en el puente al salir
 	 * del mismo
 	 */
-	public synchronized void salirPuente() {
+	public synchronized void salirPuente(int idCoche) {
 		hayCocheEnPuente = false;
 		notifyAll();
 	}

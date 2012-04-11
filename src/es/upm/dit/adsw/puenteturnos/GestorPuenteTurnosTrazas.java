@@ -1,5 +1,7 @@
 package es.upm.dit.adsw.puenteturnos;
 
+import java.util.ArrayList;
+
 /* ESTE GESTOR ES IGUAL A GestorPuenteTurnos, PERO CON TRAZAS PARA
  * SEGUIR SU FUNCIONAMIENTO.
  */
@@ -18,15 +20,15 @@ public class GestorPuenteTurnosTrazas {
 	 */
 	private boolean hayCocheEnPuente = false;
 
-	/** Indica en n'umero de coches que est'an esperando
+	/** Almacena los coches que est'an esperando
 	 * para entrar en el puente por el norte
 	 */
-	private int nCochesNorte = 0;
+	private ArrayList<CocheNorte> lCochesNorte = new ArrayList<CocheNorte>();
 
-	/** Indica en n'umero de coches que est'an esperando
+	/** Almacena los coches que est'an esperando
 	 * para entrar en el puente por el sur
 	 */
-	private int nCochesSur   = 0;
+	private ArrayList<CocheSur> lCochesSur = new ArrayList<CocheSur>();
 
 	/** Indica si el turno es de los coches que vienen
 	 * por el norte o por el sur. 
@@ -39,20 +41,24 @@ public class GestorPuenteTurnosTrazas {
 	 * @throws InterruptedException Esta excepci'on se eleva
 	 * cuando se interrumpe a la hebra mientra est'a esperando
 	 */
-	public synchronized void entrarNorte(int idCoche) 
+	public synchronized void entrarNorte(CocheNorte coche)
 			throws InterruptedException {
 
-		nCochesNorte ++;
+		lCochesNorte.add(coche);
 		
-		if (hayCocheEnPuente ||	(!turnoNorte && nCochesSur > 0))
-			System.out.println("NNNNN El coche " + idCoche + 
+		if (hayCocheEnPuente ||	(!turnoNorte && !lCochesSur.isEmpty()))
+			System.out.println("NNNNN El coche " + coche.getId() +
 					" se bloquea en la entrada");
 			
-		while (hayCocheEnPuente || (!turnoNorte && nCochesSur > 0)) wait();
+		while ((hayCocheEnPuente || (!turnoNorte && !lCochesSur.isEmpty())) 
+				&& coche != lCochesNorte.get(0)) wait();
+
 		hayCocheEnPuente = true;
-		nCochesNorte --;
+
+		lCochesNorte.remove(0);
+
 		turnoNorte = false;
-		System.out.println("N>>>>> El coche " + idCoche + 
+		System.out.println("N>>>>> El coche " + coche.getId() +
 				" entra por el norte");
 		
 	}
@@ -64,19 +70,24 @@ public class GestorPuenteTurnosTrazas {
 	 * @throws InterruptedException Esta excepci'on se eleva
 	 * cuando se interrumpe a la hebra mientra est'a esperando
 	 */
-	public synchronized void  entrarSur(int idCoche) 
+	public synchronized void  entrarSur(CocheSur coche)
 			throws InterruptedException {
-		nCochesSur ++;
-		
-		if (hayCocheEnPuente || (turnoNorte && nCochesNorte > 0))
-			System.out.println("SSSSS El coche " + idCoche + 
+
+		lCochesSur.add(coche);
+
+		if (hayCocheEnPuente || (turnoNorte && !lCochesNorte.isEmpty()))
+			System.out.println("SSSSS El coche " + coche.getId() +
 				" se bloquea en la entrada");
 		
-		while (hayCocheEnPuente || (turnoNorte && nCochesNorte > 0)) wait();
+		while ((hayCocheEnPuente || (turnoNorte && !lCochesNorte.isEmpty()))
+				&& coche != lCochesSur.get(0)) wait();
+
 		hayCocheEnPuente = true;
-		nCochesSur --;
+
+		lCochesSur.remove(0);
+
 		turnoNorte = true;
-		System.out.println("S>>>>> El coche " + idCoche + 
+		System.out.println("S>>>>> El coche " + coche.getId() +
 				" entra por el sur");
 	}
 
